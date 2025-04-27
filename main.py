@@ -2,21 +2,32 @@ import re
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-import joblib
+import joblib 
+import pandas as pd
 def train_email_classifier():
     """
     Trains a model to classify emails as personal or commercial.
     """
+
     # Sample dataset
-    emails = [
-        "john.doe@gmail.com", "jane.smith@yahoo.com", "info@company.com",
-        "support@business.org", "contact@startup.net", "user@hotmail.com"
-    ]
-    labels = ["personal", "personal", "commercial", "commercial", "commercial", "personal"]
+    # email_domain = [
+    #     "gmail.com", "yahoo.com", "amazon.com",
+    #     "google.com", "microsoft.com", "hotmail.com",
+    #     "outlook.com","icloud.com","aol.com"
+    # ]
+    # labels = ["personal", "personal", "commercial", 
+    #           "commercial", "commercial", "personal",
+    #           "personal","personal","personal"]
+    # Read email domains and labels from CSV
+    data = pd.read_csv("email_domain.csv")
+    email_domain = data['domain'].tolist()
+    labels = data['label'].tolist()
+
+
 
     # Convert emails to feature vectors
     vectorizer = CountVectorizer()
-    X = vectorizer.fit_transform(emails)
+    X = vectorizer.fit_transform(email_domain)
     y = labels
 
     # Split data into training and testing sets
@@ -35,22 +46,29 @@ def train_email_classifier():
 # Uncomment the following line to train the model when running this script
 # train_email_classifier()
 def validate_email(email):
-    """
-    Validates an email address using a regular expression.
-    
-    Args:
-        email (str): The email address to validate.
-    
-    Returns:
-        bool: True if the email is valid, False otherwise.
-    """
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(email_regex, email) is not None
 
 # Example usage
 if __name__ == "__main__":
-    test_email = "8080.com"
+    test_email = "anish@80.com"
     if validate_email(test_email):
         print(f"{test_email} is a valid email address.")
     else:
         print(f"{test_email} is not a valid email address.")
+
+
+    train_email_classifier()
+    # Load the trained model and vectorizer
+    classifier = joblib.load("email_classifier.pkl")
+    vectorizer = joblib.load("email_vectorizer.pkl")
+    # Example email to classify
+
+    # Read email addresses from CSV
+    email_data = pd.read_csv("email_address_list.csv")
+    email_to_classify = email_data['Email_Address'].tolist()
+    for email in email_to_classify:
+        email_to_classify = [email.split('@')[-1]]    
+        email_features = vectorizer.transform(email_to_classify)
+        prediction = classifier.predict(email_features)
+        print(f"The email '{email_to_classify[0]}' is classified as: {prediction[0]}")
